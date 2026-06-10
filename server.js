@@ -40,7 +40,7 @@ function cozeAuth(req, res, next) {
 }
 
 // API 路由（使用 cozeAuth 替代原有 auth 中间件）
-const authRouter = require('./routes/auth');
+const { router: authRouter } = require('./routes/auth');
 const sheepRouter = require('./routes/sheep-coze');
 const locationRouter = require('./routes/location-coze');
 const healthRouter = require('./routes/health-coze');

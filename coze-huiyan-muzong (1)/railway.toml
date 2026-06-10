@@ -1,0 +1,7 @@
+# 慧眼牧踪 Coze 适配版 - Railway 部署配置
+# 使用 Dockerfile 构建，解决 better-sqlite3 原生编译问题
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"

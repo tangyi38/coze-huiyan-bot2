@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>慧眼牧踪 - 登录</title>
+<style>
+  :root { --primary:#2e7d32; --primary-light:#4caf50; --primary-dark:#1b5e20; --accent:#ff6f00; --text:#263238; --text-secondary:#78909c; --border:#c8e6c9; --card:#ffffff; }
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; height:100vh; overflow:hidden; background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 40%,#43a047 100%); display:flex; align-items:center; justify-content:center; position:relative; }
+  .bg-pattern { position:absolute;inset:0;opacity:.06;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='3' fill='white'/%3E%3C/svg%3E") repeat;pointer-events:none; }
+  .bg-circle { position:absolute;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none; }
+  .bg-circle:nth-child(1){width:500px;height:500px;top:-120px;right:-80px} .bg-circle:nth-child(2){width:350px;height:350px;bottom:-60px;left:-50px} .bg-circle:nth-child(3){width:200px;height:200px;top:50%;left:15%;background:rgba(255,255,255,.02)}
+  .float-sheep { position:absolute;font-size:28px;opacity:.12;animation:floatSheep 8s ease-in-out infinite;pointer-events:none; }
+  .float-sheep:nth-child(4){top:15%;left:10%;animation-delay:0s} .float-sheep:nth-child(5){top:60%;left:8%;animation-delay:2s;font-size:22px} .float-sheep:nth-child(6){top:25%;right:12%;animation-delay:4s;font-size:32px} .float-sheep:nth-child(7){bottom:18%;right:15%;animation-delay:1s;font-size:20px} .float-sheep:nth-child(8){top:45%;left:25%;animation-delay:3s;font-size:18px}
+  @keyframes floatSheep { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(5deg)} }
+  .login-container { position:relative;z-index:10;display:flex;width:900px;max-width:95vw;min-height:520px;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.08); }
+  .brand-panel { width:420px;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04));backdrop-filter:blur(2px);padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden; }
+  .brand-panel::before { content:'';position:absolute;inset:0;border-right:1px solid rgba(255,255,255,.08); }
+  .brand-top { position:relative; } .brand-logo { font-size:42px;margin-bottom:16px; }
+  .brand-title { font-size:26px;font-weight:700;color:#fff;letter-spacing:2px; }
+  .brand-subtitle { font-size:14px;color:rgba(255,255,255,.7);margin-top:6px;line-height:1.6; }
+  .brand-features { position:relative;margin-top:36px;display:flex;flex-direction:column;gap:14px; }
+  .feature-item { display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.85);font-size:13px; }
+  .feature-icon { width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0; }
+  .brand-footer { position:relative;font-size:11px;color:rgba(255,255,255,.35); }
+  .form-panel { flex:1;background:var(--card);padding:48px 44px;display:flex;flex-direction:column;justify-content:center; }
+  .form-panel h2 { font-size:22px;font-weight:700;color:var(--text); }
+  .form-panel .form-desc { font-size:13px;color:var(--text-secondary);margin-top:6px;margin-bottom:32px; }
+  .input-group { margin-bottom:20px;position:relative; }
+  .input-group label { display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px; }
+  .input-wrapper { position:relative;display:flex;align-items:center; }
+  .input-wrapper .icon { position:absolute;left:14px;font-size:16px;color:#bbb;transition:.2s; }
+  .input-wrapper input { width:100%;padding:12px 14px 12px 42px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:.25s;background:#fafafa; }
+  .input-wrapper input:focus { border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(46,125,50,.1); }
+  .toggle-pwd { position:absolute;right:14px;cursor:pointer;font-size:16px;color:#bbb;user-select:none;transition:.2s; }
+  .toggle-pwd:hover { color:var(--primary); }
+  .form-options { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;font-size:13px; }
+  .remember-me { display:flex;align-items:center;gap:6px;color:var(--text-secondary);cursor:pointer; }
+  .remember-me input[type=checkbox] { accent-color:var(--primary);width:15px;height:15px;cursor:pointer; }
+  .forgot-link { color:var(--primary);text-decoration:none;font-weight:500; }
+  .forgot-link:hover { text-decoration:underline; }
+  .btn-login { width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.3s;letter-spacing:1px; }
+  .btn-login:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary));box-shadow:0 4px 16px rgba(46,125,50,.35);transform:translateY(-1px); }
+  .btn-login:active { transform:translateY(0); }
+  .btn-login.loading { pointer-events:none;opacity:.8; }
+  .divider { display:flex;align-items:center;margin:22px 0;color:#ccc;font-size:12px; }
+  .divider::before,.divider::after { content:'';flex:1;height:1px;background:#e8e8e8; } .divider span { padding:0 12px; }
+  .role-select { display:flex;gap:10px;margin-bottom:24px; }
+  .role-btn { flex:1;padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fafafa;cursor:pointer;text-align:center;transition:.25s; }
+  .role-btn:hover { border-color:var(--primary);background:#f1f8e9; }
+  .role-btn.active { border-color:var(--primary);background:#e8f5e9;box-shadow:0 0 0 3px rgba(46,125,50,.08); }
+  .role-btn .role-icon { font-size:22px;margin-bottom:4px; } .role-btn .role-name { font-size:12px;font-weight:500;color:var(--text); } .role-btn .role-desc { font-size:10px;color:var(--text-secondary);margin-top:2px; }
+  .form-footer { text-align:center;margin-top:18px;font-size:12px;color:var(--text-secondary); }
+  .form-footer a { color:var(--primary);text-decoration:none;font-weight:500; }
+  .toast { position:fixed;top:24px;right:24px;z-index:1000;padding:14px 22px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;display:none;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateX(120%);transition:.4s cubic-bezier(.22,1,.36,1); }
+  .toast.show { display:flex;transform:translateX(0); }
+  .toast.success { background:var(--primary); } .toast.error { background:#d32f2f; }
+  @media(max-width:720px) { .brand-panel{display:none} .login-container{width:100%;max-width:420px;min-height:auto} .form-panel{padding:36px 28px} }
+</style>
+</head>
+<body>
+<div class="bg-circle"></div><div class="bg-circle"></div><div class="bg-circle"></div>
+<div class="float-sheep">🐑</div><div class="float-sheep">🐑</div><div class="float-sheep">🐑</div><div class="float-sheep">🐑</div><div class="float-sheep">🐑</div>
+<div class="bg-pattern"></div>
+<div class="toast" id="toast"></div>
+<div class="login-container">
+  <div class="brand-panel">
+    <div class="brand-top">
+      <div class="brand-logo">🐑</div>
+      <div class="brand-title">慧眼牧踪</div>
+      <div class="brand-subtitle">智能养殖管理系统<br>定位 · 识别 · 监测 · 管理 · 溯源</div>
+      <div class="brand-features">
+        <div class="feature-item"><div class="feature-icon">📍</div><span>北斗+GPS双模定位，实时追踪羊群动态</span></div>
+        <div class="feature-item"><div class="feature-icon">🔍</div><span>YOLOv8图像识别，智能检测异常行为</span></div>
+        <div class="feature-item"><div class="feature-icon">🚨</div><span>越界/疫病/低电预警，5秒即时推送</span></div>
+        <div class="feature-item"><div class="feature-icon">🔗</div><span>全生命周期溯源，从牧场到餐桌</span></div>
+      </div>
+    </div>
+    <div class="brand-footer">© 2026 慧眼牧踪 · 成都锦城学院 · 第一组</div>
+  </div>
+  <div class="form-panel">
+    <h2>欢迎回来 👋</h2>
+    <div class="form-desc">登录慧眼牧踪管理系统，守护每一只羊</div>
+    <div class="role-select">
+      <div class="role-btn active" onclick="selectRole(this,'牧民')"><div class="role-icon">👨‍🌾</div><div class="role-name">牧民</div><div class="role-desc">日常管理</div></div>
+      <div class="role-btn" onclick="selectRole(this,'管理员')"><div class="role-icon">🧑‍💻</div><div class="role-name">管理员</div><div class="role-desc">系统运维</div></div>
+      <div class="role-btn" onclick="selectRole(this,'消费者')"><div class="role-icon">🛒</div><div class="role-name">消费者</div><div class="role-desc">溯源查询</div></div>
+    </div>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="input-group"><label>账号</label><div class="input-wrapper"><input type="text" id="username" placeholder="请输入用户名或手机号" autocomplete="username"><span class="icon">👤</span></div></div>
+      <div class="input-group"><label>密码</label><div class="input-wrapper"><input type="password" id="password" placeholder="请输入密码" autocomplete="current-password"><span class="icon">🔒</span><span class="toggle-pwd" onclick="togglePassword()">👁️</span></div></div>
+      <div class="form-options"><label class="remember-me"><input type="checkbox" checked> 记住登录</label><a href="javascript:void(0)" class="forgot-link" onclick="showToast('请联系管理员重置密码','error')">忘记密码？</a></div>
+      <button type="submit" class="btn-login" id="btnLogin">登 录</button>
+    </form>
+    <div class="divider"><span>演示账号</span></div>
+    <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.8">
+      管理员: admin / 123456<br>牧民: herdsman / 123456 · 消费者: consumer / 123456
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRole = '牧民';
+
+function selectRole(el, role) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  currentRole = role;
+}
+
+function togglePassword() {
+  const pwd = document.getElementById('password');
+  const btn = document.querySelector('.toggle-pwd');
+  pwd.type = pwd.type === 'password' ? 'text' : 'password';
+  btn.textContent = pwd.type === 'password' ? '👁️' : '🙈';
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = (type === 'success' ? '✅ ' : '⚠️ ') + msg;
+  toast.className = 'toast ' + type + ' show';
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const btn = document.getElementById('btnLogin');
+
+  if (!username) { showToast('请输入用户名', 'error'); return; }
+  if (!password) { showToast('请输入密码', 'error'); return; }
+
+  btn.textContent = '登录中...';
+  btn.classList.add('loading');
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, role: currentRole })
+    });
+    const data = await res.json();
+
+    btn.textContent = '登 录';
+    btn.classList.remove('loading');
+
+    if (data.code === 0) {
+      localStorage.setItem('token', data.data.token);
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      showToast('登录成功！角色：' + data.data.user.role);
+      setTimeout(() => { window.location.href = 'index.html'; }, 800);
+    } else {
+      showToast(data.msg || '登录失败', 'error');
+    }
+  } catch (err) {
+    btn.textContent = '登 录';
+    btn.classList.remove('loading');
+    showToast('网络错误，请检查服务器', 'error');
+  }
+}
+
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(e); });
+</script>
+</body>
+</html>

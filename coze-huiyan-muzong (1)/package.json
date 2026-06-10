@@ -1,0 +1,20 @@
+{
+  "name": "huiyan-muzong-coze",
+  "version": "1.0.0",
+  "description": "慧眼牧踪智能养殖管理系统 - Coze平台适配版",
+  "main": "server.js",
+  "scripts": {
+    "start": "node db/init.js && node server.js",
+    "init-db": "node db/init.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.10.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

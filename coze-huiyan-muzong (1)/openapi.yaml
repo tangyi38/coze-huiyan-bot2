@@ -1,0 +1,698 @@
+openapi: 3.0.0
+info:
+  title: 慧眼牧踪数据服务
+  description: 慧眼牧踪智能养殖系统的数据接口，提供羊只管理、定位追踪、健康监测、预警管理等功能
+  version: 1.0.0
+
+servers:
+  - url: https://你的公网域名
+    description: Railway部署后的地址
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ========== 认证 ==========
+  /api/auth/login:
+    post:
+      operationId: userLogin
+      summary: 用户登录
+      description: 使用用户名密码登录，获取JWT令牌
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  description: 用户名
+                  example: admin
+                password:
+                  type: string
+                  description: 密码
+                  example: "123456"
+      responses:
+        "200":
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 0
+                  msg:
+                    type: string
+                    example: 登录成功
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        type: object
+
+  /api/auth/info:
+    get:
+      operationId: getUserInfo
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  data:
+                    type: object
+
+  # ========== 羊只管理 ==========
+  /api/sheep:
+    get:
+      operationId: getSheepList
+      summary: 查询羊只列表
+      description: 获取羊只分页列表，支持关键词、品种、健康状态筛选
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词（耳标号/品种）
+        - name: breed
+          in: query
+          schema:
+            type: string
+          description: 品种筛选
+        - name: health_status
+          in: query
+          schema:
+            type: string
+            enum: [健康, 观察中, 异常]
+          description: 健康状态筛选
+      responses:
+        "200":
+          description: 成功
+    post:
+      operationId: createSheep
+      summary: 新增羊只
+      description: 添加一只新的羊只记录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tag_number, breed]
+              properties:
+                tag_number:
+                  type: string
+                  description: 耳标号
+                breed:
+                  type: string
+                  description: 品种
+                age:
+                  type: integer
+                  description: 年龄
+                weight:
+                  type: number
+                  description: 体重(kg)
+                gender:
+                  type: string
+                  enum: [雄, 雌]
+                health_status:
+                  type: string
+                  enum: [健康, 观察中, 异常]
+                herd_id:
+                  type: integer
+                  description: 所属羊群ID
+                birth_date:
+                  type: string
+                  description: 出生日期
+      responses:
+        "200":
+          description: 成功
+
+  /api/sheep/stats:
+    get:
+      operationId: getSheepStats
+      summary: 羊只统计
+      description: 获取羊只总数、设备在线、预警数量、健康分布等统计数据
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      totalSheep:
+                        type: integer
+                      onlineDevices:
+                        type: integer
+                      totalDevices:
+                        type: integer
+                      pendingAlerts:
+                        type: integer
+                      healthyCount:
+                        type: integer
+                      watchCount:
+                        type: integer
+                      abnormalCount:
+                        type: integer
+
+  /api/sheep/herds:
+    get:
+      operationId: getHerds
+      summary: 查询羊群列表
+      description: 获取所有羊群及其基本信息
+      responses:
+        "200":
+          description: 成功
+
+  /api/sheep/{id}:
+    get:
+      operationId: getSheepDetail
+      summary: 查询羊只详情
+      description: 根据ID获取单只羊的详细信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 成功
+    put:
+      operationId: updateSheep
+      summary: 修改羊只信息
+      description: 修改指定ID羊只的信息
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag_number:
+                  type: string
+                breed:
+                  type: string
+                age:
+                  type: integer
+                weight:
+                  type: number
+                gender:
+                  type: string
+                health_status:
+                  type: string
+                herd_id:
+                  type: integer
+                birth_date:
+                  type: string
+      responses:
+        "200":
+          description: 成功
+    delete:
+      operationId: deleteSheep
+      summary: 删除羊只
+      description: 删除指定ID的羊只记录
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 定位追踪 ==========
+  /api/location/list:
+    get:
+      operationId: getLocationList
+      summary: 查询定位记录
+      description: 获取各羊只最新定位信息
+      parameters:
+        - name: herd_id
+          in: query
+          schema:
+            type: integer
+          description: 按羊群筛选
+      responses:
+        "200":
+          description: 成功
+
+  /api/location/herds-latest:
+    get:
+      operationId: getHerdsLatest
+      summary: 羊群最新位置
+      description: 获取各羊群最新位置和状态信息
+      responses:
+        "200":
+          description: 成功
+
+  /api/location/fences:
+    get:
+      operationId: getFences
+      summary: 查询围栏列表
+      description: 获取所有电子围栏信息
+      responses:
+        "200":
+          description: 成功
+    post:
+      operationId: createFence
+      summary: 新增围栏
+      description: 创建一个新的电子围栏
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, center_lng, center_lat, radius]
+              properties:
+                name:
+                  type: string
+                  description: 围栏名称
+                center_lng:
+                  type: number
+                  description: 中心经度
+                center_lat:
+                  type: number
+                  description: 中心纬度
+                radius:
+                  type: number
+                  description: 半径(米)
+      responses:
+        "200":
+          description: 成功
+
+  /api/location/boundary-events:
+    get:
+      operationId: getBoundaryEvents
+      summary: 越界事件
+      description: 获取羊群/羊只越界事件记录
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 健康监测 ==========
+  /api/health/records:
+    get:
+      operationId: getHealthRecords
+      summary: 查询健康记录
+      description: 获取羊只健康监测记录列表
+      parameters:
+        - name: sheep_id
+          in: query
+          schema:
+            type: integer
+          description: 按羊只ID筛选
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 成功
+    post:
+      operationId: createHealthRecord
+      summary: 新增健康记录
+      description: 为羊只添加一条健康监测记录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sheep_id, temperature]
+              properties:
+                sheep_id:
+                  type: integer
+                  description: 羊只ID
+                temperature:
+                  type: number
+                  description: 体温(℃)
+                heart_rate:
+                  type: integer
+                  description: 心率(次/分钟)
+                activity_level:
+                  type: string
+                  description: 活动水平
+                rumination:
+                  type: integer
+                  description: 反刍次数
+                notes:
+                  type: string
+                  description: 备注
+      responses:
+        "200":
+          description: 成功
+
+  /api/health/stats:
+    get:
+      operationId: getHealthStats
+      summary: 健康统计
+      description: 获取健康状态分布和疫苗接种统计数据
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      healthy:
+                        type: integer
+                      watching:
+                        type: integer
+                      abnormal:
+                        type: integer
+                      vaxCount:
+                        type: integer
+
+  /api/health/vaccinations:
+    get:
+      operationId: getVaccinations
+      summary: 查询疫苗记录
+      description: 获取疫苗接种计划列表
+      responses:
+        "200":
+          description: 成功
+    post:
+      operationId: createVaccination
+      summary: 新增疫苗记录
+      description: 创建一条疫苗接种计划
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, plan_date]
+              properties:
+                name:
+                  type: string
+                  description: 疫苗名称
+                batch_no:
+                  type: string
+                  description: 批号
+                target_herd_id:
+                  type: integer
+                  description: 目标羊群ID
+                plan_date:
+                  type: string
+                  description: 计划接种日期
+                operator:
+                  type: string
+                  description: 操作人
+                notes:
+                  type: string
+                  description: 备注
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 识别检测 ==========
+  /api/detect/records:
+    get:
+      operationId: getDetectRecords
+      summary: 查询检测记录
+      description: 获取AI识别检测记录列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 成功
+
+  /api/detect/stats:
+    get:
+      operationId: getDetectStats
+      summary: 检测统计
+      description: 获取AI识别数据汇总（今日检测数、平均置信度、疑似疾病等）
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 异常预警 ==========
+  /api/alert/list:
+    get:
+      operationId: getAlertList
+      summary: 查询预警列表
+      description: 获取预警记录，支持按类型和状态筛选
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [越界, 设备, 健康]
+          description: 预警类型
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [待处理, 处理中, 已处理]
+          description: 预警状态
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 成功
+
+  /api/alert/stats:
+    get:
+      operationId: getAlertStats
+      summary: 预警统计
+      description: 获取按类型和状态分类的预警统计数据
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      boundary:
+                        type: integer
+                        description: 越界预警数
+                      device:
+                        type: integer
+                        description: 设备预警数
+                      health:
+                        type: integer
+                        description: 健康预警数
+                      pending:
+                        type: integer
+                      processing:
+                        type: integer
+                      done:
+                        type: integer
+
+  /api/alert/handle/{id}:
+    put:
+      operationId: handleAlert
+      summary: 处理预警
+      description: 处理指定ID的预警记录
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, handle_note]
+              properties:
+                status:
+                  type: string
+                  enum: [处理中, 已处理]
+                  description: 处理后状态
+                handle_note:
+                  type: string
+                  description: 处理说明
+                handler:
+                  type: string
+                  description: 处理人
+      responses:
+        "200":
+          description: 成功
+
+  /api/alert/create:
+    post:
+      operationId: createAlert
+      summary: 创建预警
+      description: 手动创建一条预警记录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, level, detail]
+              properties:
+                type:
+                  type: string
+                  enum: [越界, 设备, 健康]
+                  description: 预警类型
+                level:
+                  type: string
+                  enum: [紧急, 警告, 提示]
+                  description: 预警等级
+                target_type:
+                  type: string
+                  description: 目标类型（羊群/设备/羊只）
+                target_id:
+                  type: string
+                  description: 目标编号
+                detail:
+                  type: string
+                  description: 预警详情
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 产品溯源 ==========
+  /api/trace/query:
+    get:
+      operationId: traceQuery
+      summary: 溯源查询
+      description: 通过溯源码查询产品全链路信息（养殖→检疫→加工→销售）
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 溯源码
+      responses:
+        "200":
+          description: 成功
+
+  /api/trace/sheep-code/{id}:
+    get:
+      operationId: getSheepTraceCode
+      summary: 获取羊只溯源码
+      description: 根据羊只ID获取其溯源码
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 成功
+
+  # ========== 系统设置 ==========
+  /api/settings/all:
+    get:
+      operationId: getSettings
+      summary: 系统设置
+      description: 获取系统配置参数（预警阈值、围栏参数等）
+      responses:
+        "200":
+          description: 成功
+
+  /api/settings/devices:
+    get:
+      operationId: getDevices
+      summary: 设备列表
+      description: 获取GPS定位器等设备列表及状态
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: 成功
+
+  /api/settings/device-stats:
+    get:
+      operationId: getDeviceStats
+      summary: 设备统计
+      description: 获取设备在线/离线/低电量等统计数据
+      responses:
+        "200":
+          description: 成功
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: JWT令牌或Coze专用API Key

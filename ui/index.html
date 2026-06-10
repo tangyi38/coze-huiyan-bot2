@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>慧眼牧踪 - 智能养殖管理系统</title>
+<style>
+  :root {
+    --primary: #2e7d32; --primary-light: #4caf50; --primary-dark: #1b5e20;
+    --accent: #ff6f00; --bg: #f1f8e9; --card: #ffffff; --text: #263238;
+    --text-secondary: #607d8b; --border: #c8e6c9; --danger: #d32f2f;
+    --warning: #f9a825; --info: #0288d1; --sidebar-w: 220px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
+
+  .sidebar { width:var(--sidebar-w); background:linear-gradient(180deg,var(--primary-dark),var(--primary)); color:#fff; display:flex; flex-direction:column; flex-shrink:0; }
+  .sidebar-logo { padding:20px 16px; border-bottom:1px solid rgba(255,255,255,.15); }
+  .sidebar-logo h1 { font-size:18px; font-weight:700; letter-spacing:1px; }
+  .sidebar-logo p { font-size:11px; opacity:.7; margin-top:2px; }
+  .sidebar-nav { flex:1; padding:12px 0; overflow-y:auto; }
+  .nav-group { margin-bottom:4px; }
+  .nav-group-title { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; opacity:.5; padding:8px 20px 4px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 20px; cursor:pointer; transition:.2s; font-size:13.5px; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,.1); }
+  .nav-item.active { background:rgba(255,255,255,.15); border-left-color:var(--accent); font-weight:600; }
+  .nav-item .icon { width:20px; text-align:center; font-size:15px; }
+  .sidebar-footer { padding:14px 16px; border-top:1px solid rgba(255,255,255,.15); font-size:11px; opacity:.6; }
+
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .topbar { height:56px; background:var(--card); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; flex-shrink:0; }
+  .topbar-left { display:flex; align-items:center; gap:16px; }
+  .topbar-left h2 { font-size:16px; font-weight:600; }
+  .breadcrumb { font-size:12px; color:var(--text-secondary); }
+  .topbar-right { display:flex; align-items:center; gap:16px; }
+  .topbar-search { padding:6px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; width:200px; outline:none; }
+  .topbar-search:focus { border-color:var(--primary); }
+  .badge-wrap { position:relative; cursor:pointer; }
+  .badge-wrap .dot { position:absolute; top:-4px; right:-4px; width:8px; height:8px; background:var(--danger); border-radius:50%; }
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--primary-light); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; cursor:pointer; }
+
+  .content { flex:1; overflow-y:auto; padding:20px 24px; }
+  .page { display:none; } .page.active { display:block; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-card { background:var(--card); border-radius:10px; padding:18px 20px; box-shadow:0 1px 4px rgba(0,0,0,.06); display:flex; align-items:center; gap:14px; }
+  .stat-icon { width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; color:#fff; }
+  .stat-icon.green { background:linear-gradient(135deg,#43a047,#66bb6a); }
+  .stat-icon.blue { background:linear-gradient(135deg,#1e88e5,#42a5f5); }
+  .stat-icon.orange { background:linear-gradient(135deg,#fb8c00,#ffa726); }
+  .stat-icon.red { background:linear-gradient(135deg,#e53935,#ef5350); }
+  .stat-info h3 { font-size:24px; font-weight:700; }
+  .stat-info p { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .stat-info .trend { font-size:11px; margin-top:2px; }
+  .trend.up { color:var(--primary); } .trend.down { color:var(--danger); }
+
+  .grid-2 { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:20px; }
+  .grid-2-1 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .grid-1-1 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+
+  .card { background:var(--card); border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,.06); overflow:hidden; }
+  .card-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-header h3 { font-size:14px; font-weight:600; }
+  .card-header .more { font-size:12px; color:var(--primary); cursor:pointer; }
+  .card-body { padding:16px 18px; }
+
+  .map-placeholder { width:100%; height:320px; background:linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 100%); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--primary-dark); position:relative; overflow:hidden; }
+  .map-placeholder::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 30 L30 0 L60 30 L30 60Z' fill='none' stroke='%23a5d6a7' stroke-width='.5'/%3E%3C/svg%3E") repeat; opacity:.4; }
+  .map-placeholder .map-title { font-size:16px; font-weight:600; z-index:1; }
+  .map-placeholder .map-sub { font-size:12px; opacity:.7; margin-top:4px; z-index:1; }
+  .map-dots { position:absolute; inset:0; }
+  .map-dot { position:absolute; width:12px; height:12px; border-radius:50%; background:var(--primary); border:2px solid #fff; box-shadow:0 0 6px rgba(46,125,50,.5); animation:pulse 2s infinite; }
+  .map-dot.alert { background:var(--danger); animation:pulse-alert 1.5s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+  @keyframes pulse-alert { 0%,100%{transform:scale(1);box-shadow:0 0 6px rgba(211,47,47,.5)} 50%{transform:scale(1.4);box-shadow:0 0 12px rgba(211,47,47,.8)} }
+
+  .alert-list { display:flex; flex-direction:column; gap:10px; max-height:320px; overflow-y:auto; }
+  .alert-item { display:flex; align-items:flex-start; gap:10px; padding:10px 12px; border-radius:8px; background:#fff3e0; border-left:3px solid var(--warning); }
+  .alert-item.danger { background:#ffebee; border-left-color:var(--danger); }
+  .alert-item .alert-icon { font-size:16px; margin-top:2px; }
+  .alert-item .alert-text { flex:1; }
+  .alert-item .alert-title { font-size:13px; font-weight:600; }
+  .alert-item .alert-desc { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .alert-item .alert-time { font-size:10px; color:var(--text-secondary); white-space:nowrap; }
+
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { text-align:left; padding:10px 12px; background:#f5f5f5; font-weight:600; font-size:12px; color:var(--text-secondary); border-bottom:1px solid var(--border); }
+  .data-table td { padding:10px 12px; border-bottom:1px solid #f0f0f0; }
+  .data-table tr:hover td { background:#f9fbe7; }
+
+  .tag { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; }
+  .tag.green { background:#e8f5e9; color:var(--primary); }
+  .tag.red { background:#ffebee; color:var(--danger); }
+  .tag.yellow { background:#fff8e1; color:#f57f17; }
+  .tag.blue { background:#e3f2fd; color:var(--info); }
+
+  .health-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .health-item { padding:12px; border-radius:8px; background:#f1f8e9; text-align:center; }
+  .health-item .val { font-size:20px; font-weight:700; }
+  .health-item .lbl { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .toolbar-left { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn { padding:8px 16px; border-radius:6px; border:none; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:.2s; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-primary:hover { background:var(--primary-dark); }
+  .btn-outline { background:#fff; border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+  .filter-select { padding:7px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; outline:none; }
+
+  .alert-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+  .alert-card { background:var(--card); border-radius:10px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.06); border-top:3px solid var(--warning); }
+  .alert-card.critical { border-top-color:var(--danger); }
+  .alert-card .ac-title { font-size:13px; font-weight:600; }
+  .alert-card .ac-count { font-size:28px; font-weight:700; margin:6px 0 2px; }
+  .alert-card .ac-sub { font-size:11px; color:var(--text-secondary); }
+
+  .trace-search { background:var(--card); border-radius:10px; padding:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.06); margin-bottom:20px; }
+  .trace-search h3 { font-size:16px; margin-bottom:12px; }
+  .trace-input { padding:10px 16px; border:1px solid var(--border); border-radius:6px; width:360px; max-width:90%; font-size:14px; outline:none; }
+  .trace-input:focus { border-color:var(--primary); }
+  .trace-result { background:var(--card); border-radius:10px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .trace-timeline { position:relative; padding-left:28px; }
+  .trace-timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--border); }
+  .trace-node { position:relative; margin-bottom:20px; }
+  .trace-node::before { content:''; position:absolute; left:-22px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--primary); border:2px solid #fff; box-shadow:0 0 4px rgba(46,125,50,.3); }
+  .trace-node .tn-title { font-size:13px; font-weight:600; }
+  .trace-node .tn-desc { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .trace-node .tn-time { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+
+  .settings-section { background:var(--card); border-radius:10px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.06); margin-bottom:16px; }
+  .settings-section h3 { font-size:14px; font-weight:600; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  .form-row { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+  .form-label { width:120px; font-size:13px; color:var(--text-secondary); flex-shrink:0; }
+  .form-input { flex:1; max-width:320px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; outline:none; }
+  .form-input:focus { border-color:var(--primary); }
+
+  .fade-in { animation:fadeIn .3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h1>🐑 慧眼牧踪</h1>
+    <p>智能养殖管理系统 v1.0</p>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-group-title">总览</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span>数据看板</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">核心业务</div>
+      <div class="nav-item" onclick="showPage('location')"><span class="icon">📍</span>定位追踪</div>
+      <div class="nav-item" onclick="showPage('sheep')"><span class="icon">🐑</span>羊只管理</div>
+      <div class="nav-item" onclick="showPage('detect')"><span class="icon">🔍</span>识别检测</div>
+      <div class="nav-item" onclick="showPage('health')"><span class="icon">💊</span>健康监测</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">运营</div>
+      <div class="nav-item" onclick="showPage('alert')"><span class="icon">🚨</span>异常预警</div>
+      <div class="nav-item" onclick="showPage('trace')"><span class="icon">🔗</span>产品溯源</div>
+      <div class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span>系统设置</div>
+    </div>
+  </div>
+  <div class="sidebar-footer">© 2026 慧眼牧踪 · 第一组</div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2 id="page-title">数据看板</h2>
+      <div class="breadcrumb" id="breadcrumb">首页 / 数据看板</div>
+    </div>
+    <div class="topbar-right">
+      <input class="topbar-search" placeholder="搜索羊只编号、羊群...">
+      <div class="badge-wrap" onclick="showPage('alert')">🔔<div class="dot"></div></div>
+      <div class="avatar" id="user-avatar" onclick="if(confirm('确定退出登录？')){localStorage.clear();location.href='login.html'}" title="点击退出登录">管</div>
+    </div>
+  </div>
+
+  <!-- ===== Dashboard ===== -->
+  <div class="content page active" id="page-dashboard">
+    <div class="stats-row fade-in" id="dash-stats"></div>
+    <div class="grid-2 fade-in">
+      <div class="card">
+        <div class="card-header"><h3>🗺️ 实时定位地图</h3><span class="more" onclick="showPage('location')">全屏查看</span></div>
+        <div class="card-body">
+          <div class="map-placeholder">
+            <div class="map-dots" id="map-dots-dash"></div>
+            <div class="map-title">草原牧区实时定位</div>
+            <div class="map-sub">北斗+GPS双模 · 误差≤5m · 实时更新</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🚨 实时预警</h3><span class="more" onclick="showPage('alert')">查看全部</span></div>
+        <div class="card-body"><div class="alert-list" id="dash-alerts"></div></div>
+      </div>
+    </div>
+    <div class="grid-2-1 fade-in">
+      <div class="card">
+        <div class="card-header"><h3>📈 近7日羊群状态统计</h3></div>
+        <div class="card-body">
+          <div class="chart-bar" style="display:flex;align-items:flex-end;gap:12px;height:180px;padding-top:10px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:65%"></div><div style="font-size:10px;color:var(--text-secondary)">周一</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:72%"></div><div style="font-size:10px;color:var(--text-secondary)">周二</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:58%"></div><div style="font-size:10px;color:var(--text-secondary)">周三</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:80%"></div><div style="font-size:10px;color:var(--text-secondary)">周四</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:75%"></div><div style="font-size:10px;color:var(--text-secondary)">周五</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:32px;border-radius:4px 4px 0 0;background:var(--primary-light);height:90%"></div><div style="font-size:10px;color:var(--text-secondary)">周六</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:36px;border-radius:4px 4px 0 0;background:var(--primary);height:85%"></div><div style="font-size:10px;color:var(--text-secondary);font-weight:600">今日</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🏥 健康概览</h3></div>
+        <div class="card-body"><div id="dash-health"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Location ===== -->
+  <div class="content page" id="page-location">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <select class="filter-select" id="loc-herd-filter"><option value="">全部羊群</option><option value="A-01">羊群A-01</option><option value="A-02">羊群A-02</option><option value="A-03">羊群A-03</option><option value="B-06">羊群B-06</option><option value="B-07">羊群B-07</option></select>
+      </div>
+      <div><button class="btn btn-outline" onclick="loadLocation()">🔄 刷新定位</button></div>
+    </div>
+    <div class="card fade-in">
+      <div class="map-placeholder" style="height:400px">
+        <div class="map-dots" id="loc-map-dots"></div>
+        <div class="map-title">羊群实时定位追踪</div>
+        <div class="map-sub">绿色=在线 · 红色=越界告警</div>
+      </div>
+    </div>
+    <div class="grid-1-1 fade-in" style="margin-top:16px">
+      <div class="card">
+        <div class="card-header"><h3>📍 羊群位置列表</h3></div>
+        <div class="card-body"><div id="loc-table"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🗺️ 电子围栏管理</h3><button class="btn btn-primary" style="padding:4px 12px;font-size:12px" onclick="addFence()">➕ 添加围栏</button></div>
+        <div class="card-body"><div id="fence-list"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Sheep ===== -->
+  <div class="content page" id="page-sheep">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <input class="topbar-search" id="sheep-kw" placeholder="搜索羊只编号..." style="width:200px" onkeydown="if(event.key==='Enter')loadSheep(1)">
+        <select class="filter-select" id="sheep-breed"><option value="">全部品种</option><option>藏羊</option><option>内蒙古细毛羊</option><option>小尾寒羊</option><option>滩羊</option></select>
+        <select class="filter-select" id="sheep-health"><option value="">全部健康状态</option><option>健康</option><option>观察中</option><option>异常</option></select>
+        <button class="btn btn-outline" onclick="loadSheep(1)">🔍 搜索</button>
+      </div>
+      <div><button class="btn btn-primary" onclick="addSheep()">➕ 添加羊只</button></div>
+    </div>
+    <div class="card fade-in"><div class="card-body"><div id="sheep-table"></div></div></div>
+  </div>
+
+  <!-- ===== Detection ===== -->
+  <div class="content page" id="page-detect">
+    <div class="stats-row fade-in" id="detect-stats"></div>
+    <div class="grid-2 fade-in">
+      <div class="card">
+        <div class="card-header"><h3>🔍 YOLOv8 识别结果</h3><button class="btn btn-primary" style="padding:4px 12px;font-size:12px" onclick="reportDetection()">📤 上报识别</button></div>
+        <div class="card-body"><div id="detect-table"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🤖 模型信息</h3></div>
+        <div class="card-body">
+          <div class="form-row"><span class="form-label">模型版本</span><span style="font-size:13px">YOLOv8n-v6.2</span></div>
+          <div class="form-row"><span class="form-label">模型大小</span><span style="font-size:13px">86MB（轻量化）</span></div>
+          <div class="form-row"><span class="form-label">推理设备</span><span style="font-size:13px">边缘服务器 + 云端</span></div>
+          <div class="form-row"><span class="form-label">检测频率</span><span style="font-size:13px">每5分钟/次</span></div>
+          <div class="form-row"><span class="form-label">上次更新</span><span style="font-size:13px">2026-05-28</span></div>
+          <div style="margin-top:16px"><button class="btn btn-primary">🔄 更新模型</button> <button class="btn btn-outline">📊 训练日志</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Health ===== -->
+  <div class="content page" id="page-health">
+    <div class="stats-row fade-in" id="health-stats"></div>
+    <div class="grid-1-1 fade-in">
+      <div class="card">
+        <div class="card-header"><h3>📋 健康监测记录</h3><button class="btn btn-primary" style="padding:4px 12px;font-size:12px" onclick="addHealthRecord()">➕ 添加记录</button></div>
+        <div class="card-body"><div id="health-table"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>💉 疫苗接种计划</h3></div>
+        <div class="card-body"><div id="vax-list"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Alert ===== -->
+  <div class="content page" id="page-alert">
+    <div class="alert-cards fade-in" id="alert-stats"></div>
+    <div class="card fade-in">
+      <div class="card-header"><h3>🚨 预警列表</h3>
+        <div style="display:flex;gap:8px">
+          <select class="filter-select" style="font-size:12px" id="alert-type-filter" onchange="loadAlerts(1)"><option value="">全部类型</option><option>越界</option><option>设备</option><option>健康</option></select>
+          <select class="filter-select" style="font-size:12px" id="alert-status-filter" onchange="loadAlerts(1)"><option value="">全部状态</option><option>待处理</option><option>处理中</option><option>已处理</option></select>
+        </div>
+      </div>
+      <div class="card-body"><div id="alert-table"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== Trace ===== -->
+  <div class="content page" id="page-trace">
+    <div class="trace-search fade-in">
+      <h3>🔗 产品溯源查询</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">输入溯源码查询羊只全生命周期信息</p>
+      <input class="trace-input" id="trace-code" placeholder="请输入溯源码，如 HYMZ-2026-A01-0001" onkeydown="if(event.key==='Enter')queryTrace()">
+      <button class="btn btn-primary" style="margin-left:8px" onclick="queryTrace()">🔍 查询</button>
+    </div>
+    <div class="trace-result fade-in" id="trace-result"></div>
+  </div>
+
+  <!-- ===== Settings ===== -->
+  <div class="content page" id="page-settings">
+    <div class="settings-section fade-in">
+      <h3>📡 设备管理</h3>
+      <div id="dev-stats"></div>
+    </div>
+    <div class="settings-section fade-in">
+      <h3>🔔 预警规则</h3>
+      <div id="alert-rules"></div>
+    </div>
+    <div class="settings-section fade-in">
+      <h3>💾 数据与备份</h3>
+      <div class="form-row"><span class="form-label">数据库</span><input class="form-input" value="SQLite 3 + Redis" readonly></div>
+      <div class="form-row"><span class="form-label">全量备份时间</span><input class="form-input" value="每日 23:00" readonly></div>
+      <div class="form-row"><span class="form-label">增量备份间隔</span><input class="form-input" value="每6小时" readonly></div>
+      <div class="form-row"><span class="form-label">备份数据保留</span><input class="form-input" value="30天" readonly></div>
+      <div style="margin-top:8px"><button class="btn btn-primary">📥 立即备份</button> <button class="btn btn-outline">📊 查看备份日志</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
